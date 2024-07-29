@@ -35,7 +35,7 @@ const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
 const plugins = [
   `medusa-fulfillment-manual`,
-  `medusa-payment-manual`,
+  // `medusa-payment-manual`,
   {
     resolve: `@medusajs/file-local`,
     options: {
@@ -52,6 +52,69 @@ const plugins = [
       // },
     },
   },
+  {
+    resolve: "medusa-plugin-static-pages",
+    options: {
+      enableUI: true,
+    },
+  },
+  {
+    resolve: `medusa-plugin-contentful`,
+    options: {
+      space_id: process.env.CONTENTFUL_SPACE_ID,
+      access_token: process.env.CONTENTFUL_ACCESS_TOKEN,
+      environment: process.env.CONTENTFUL_ENV,
+    },
+  },
+  {
+    resolve: `medusa-plugin-algolia`,
+    options: {
+      applicationId: process.env.ALGOLIA_APP_ID,
+      adminApiKey: process.env.ALGOLIA_ADMIN_API_KEY,
+      settings: {
+        products: {
+          indexSettings: {
+            searchableAttributes: ["title", "description"],
+            attributesToRetrieve: [
+              "id",
+              "title",
+              "description",
+              "handle",
+              "thumbnail",
+              "options",
+            ],
+          },
+          transformer: (item) => {
+            return {
+              objectID: item.id,
+              title: item.title,
+              handle: item.handle,
+              thumbnail: item.thumbnail,
+              subtitle: item.subtitle,
+              tags: item.tags,
+              description: item.description,
+              material: item.material,
+              metadata: item.metadata,
+              collection_title: item.collection ? item.collection.title : "",
+              collection_handle: item.collection ? item.collection.handle : "",
+            };
+          },
+        },
+      },
+    },
+  },
+  {
+    resolve: "medusa-payment-razorpay",
+    options: {
+      key_id: process.env.RAZORPAY_ID,
+      key_secret: process.env.RAZORPAY_SECRET,
+      razorpay_account: process.env.RAZORPAY_ACCOUNT,
+      automatic_expiry_period: 30,
+      manual_expiry_period: 20,
+      refund_speed: "normal",
+      webhook_secret: process.env.RAZORPAY_SECRET
+    }
+  }
 ];
 
 const modules = {
@@ -82,6 +145,7 @@ const projectConfig = {
         rejectUnauthorized: false,
       },
     } : {},
+  // worker_mode: "worker",
   // Uncomment the following lines to enable REDIS
   // redis_url: REDIS_URL
 };
